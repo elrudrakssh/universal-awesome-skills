@@ -7,6 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from sync_editorial_bundles import load_editorial_bundles, render_bundles_doc
 from update_readme import configure_utf8_output, find_repo_root, load_metadata, update_readme
 
 
@@ -181,7 +182,14 @@ def sync_getting_started(content: str, metadata: dict) -> str:
     return content
 
 
-def sync_bundles_doc(content: str, metadata: dict) -> str:
+def sync_bundles_doc(content: str, metadata: dict, base_dir: str | Path | None = None) -> str:
+    root = Path(base_dir) if base_dir is not None else Path(find_repo_root(__file__))
+    manifest_path = root / "data" / "editorial-bundles.json"
+    template_path = root / "tools" / "templates" / "editorial-bundles.md.tmpl"
+    if manifest_path.is_file() and template_path.is_file():
+        bundles = load_editorial_bundles(root)
+        return render_bundles_doc(root, metadata, bundles)
+
     bundle_count = count_documented_bundles(content)
     if bundle_count == 0:
         bundle_count = 36
@@ -298,7 +306,14 @@ def sync_curated_docs(base_dir: str, metadata: dict, dry_run: bool) -> int:
     updated_files = 0
     updated_files += int(update_text_file(root / "README.md", sync_readme_copy, metadata, dry_run))
     updated_files += int(update_text_file(root / "docs" / "users" / "getting-started.md", sync_getting_started, metadata, dry_run))
-    updated_files += int(update_text_file(root / "docs" / "users" / "bundles.md", sync_bundles_doc, metadata, dry_run))
+    updated_files += int(
+        update_text_file(
+            root / "docs" / "users" / "bundles.md",
+            lambda content, current_metadata: sync_bundles_doc(content, current_metadata, root),
+            metadata,
+            dry_run,
+        )
+    )
     updated_files += int(update_text_file(root / "docs" / "integrations" / "jetski-cortex.md", sync_jetski_cortex, metadata, dry_run))
 
     for path, replacements in regex_text_replacements:

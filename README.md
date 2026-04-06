@@ -533,6 +533,7 @@ We officially thank the following contributors for their help in making this rep
 - [@spideyashith](https://github.com/spideyashith)
 - [@milkomida77](https://github.com/milkomida77)
 - [@tomjwxf](https://github.com/tomjwxf)
+- [@globalchatapp](https://github.com/globalchatapp)
 
 ## Star History
 
